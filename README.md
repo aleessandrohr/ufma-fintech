@@ -1,12 +1,15 @@
 # Validador de Crédito Bancário
 
 ## Objetivo
+
 Sistema acadêmico de análise de crédito bancário para uma fintech fictícia. O sistema avalia clientes com base em suas informações financeiras e histórico, definindo aprovação, limites e taxas de juros.
 
 ## Contexto Acadêmico
+
 Projeto desenvolvido com foco em boas práticas de programação em Python, incluindo uso de `dataclasses`, arquitetura limpa, separação de responsabilidades (regras de negócio vs interface), tipagem estática (type hints) e testes automatizados. O código foi projetado para ser simples, legível e de fácil adaptação para outras linguagens e paradigmas acadêmicos como Prolog e Lisp.
 
 ## Estrutura de Pastas
+
 ```
 ufma-fintech/
 ├── README.md                   # Documentação do projeto
@@ -39,7 +42,9 @@ ufma-fintech/
 ```
 
 ## Regras de Aprovação e Reprovação
+
 O cliente será reprovado automaticamente se:
+
 - Idade for menor que 18 anos
 - Renda mensal for menor que R$ 1.500,00
 - Score for menor que 400
@@ -49,30 +54,36 @@ O cliente será reprovado automaticamente se:
 - O valor solicitado exceder o limite máximo calculado para o cliente
 
 ## Regras de Cálculo de Limite
-- Score >= 800: Renda * 4
-- Score >= 700: Renda * 3
-- Score >= 600: Renda * 2
-- Score >= 400: Renda * 1
+
+- Score >= 800: Renda \* 4
+- Score >= 700: Renda \* 3
+- Score >= 600: Renda \* 2
+- Score >= 400: Renda \* 1
 
 **Ajustes:**
+
 - Dívidas em aberto: -30%
 - 3 ou mais atrasos em 12 meses: -20%
 
 ## Regras de Cálculo de Juros
+
 - Score >= 800: 1.5% a.m.
 - Score >= 700: 2.5% a.m.
 - Score >= 600: 3.5% a.m.
 - Score >= 400: 5.0% a.m.
 
 **Ajustes:**
+
 - Dívidas em aberto: +1.0%
 - 3 ou mais atrasos em 12 meses: +0.5%
 - Solicitou > 70% do limite máximo: +0.5%
 
 ## Exemplos de Codigo e Fluxo
+
 O sistema foi separado por responsabilidade para ficar mais facil de entender:
 
 ### 1. Ponto de entrada da aplicacao
+
 Em `src/main.py`, a funcao `main()` recebe os argumentos do terminal e decide qual acao executar.
 
 ```python
@@ -87,11 +98,13 @@ if args.all:
 ```
 
 Esse trecho mostra o fluxo principal:
+
 - carrega todas as propostas
 - analisa cada cliente
 - imprime o resultado final no terminal
 
 ### 2. Modelo de dominio
+
 Em `src/credit/domain/cliente_domain.py`, a classe `Cliente` representa os dados do cliente e valida os campos basicos.
 
 ```python
@@ -109,6 +122,7 @@ class Cliente:
 Esse modelo evita dados inconsistentes, como idade negativa ou score fora da faixa esperada.
 
 ### 3. Regras de negocio
+
 Em `src/credit/services/regras_service.py`, ficam os calculos e validacoes principais.
 
 ```python
@@ -127,6 +141,7 @@ def calcular_limite_maximo(cliente: Cliente) -> float:
 Esse exemplo mostra como o sistema ajusta o limite conforme o risco do cliente.
 
 ### 4. Caso de uso da analise
+
 Em `src/credit/services/analise_service.py`, a classe `AnaliseRisco` coordena todo o processo.
 
 ```python
@@ -139,6 +154,7 @@ if not validar_score(cliente):
 Aqui o sistema verifica se o cliente cumpre as regras. Se falhar em alguma delas, a proposta e reprovada.
 
 ### 5. Acesso a dados
+
 Em `src/credit/repositories/clientes_repository.py`, o sistema le o arquivo JSON e transforma os dados em objetos Python.
 
 ```python
@@ -149,6 +165,7 @@ with caminho.open("r", encoding="utf-8") as f:
 Esse arquivo isola a leitura de dados, deixando a regra de negocio independente da origem da informacao.
 
 ### 6. Apresentacao no terminal
+
 Em `src/credit/presentation/terminal_presentation.py`, o sistema apenas formata e imprime o resultado.
 
 ```python
@@ -176,6 +193,7 @@ pip install ruff pyright pytest uv
 ```
 
 ## Como Executar pelo Terminal
+
 ```bash
 python src/main.py --help
 python src/main.py --list
@@ -184,6 +202,7 @@ python src/main.py --all
 ```
 
 ## Como Rodar com uv
+
 ```bash
 uv run ruff check .
 uv run ruff format .
@@ -192,6 +211,7 @@ uv run pytest
 ```
 
 ## Como Rodar sem uv
+
 ```bash
 python -m ruff check .
 python -m ruff format .
@@ -200,7 +220,70 @@ python -m pytest
 ```
 
 ## Decisões de Projeto e Limitações
+
 - Foram utilizadas `@dataclass(frozen=True)` em `Cliente` e `Proposta` para evitar mutação indevida de dados.
 - Funções em `regras_service.py` foram isoladas para facilitar os testes (puras ou semi-puras).
 - Arquitetura plugável: fácil de trocar o JSON por um banco de dados SQL atualizando o repositório.
 - **Atenção:** Todos os dados aqui presentes são fictícios e usados apenas para fins acadêmicos.
+
+## Versao Prolog
+
+A versao em Prolog fica na pasta `prolog/` e replica a mesma regra de negocio de forma logica, agora separada por responsabilidade.
+
+### Mapeamento Conceitual
+
+- `Cliente` e `Proposta` viram fatos `cliente/10`.
+- `regras_service.py` vira predicados de validacao e calculo.
+- `analise_service.py` vira o predicado `resultado_cliente/2`.
+- `terminal_presentation.py` vira predicados de escrita na tela.
+
+### Estrutura Prolog
+
+```text
+prolog/
+├── credito_bancario.pl     # Arquivo principal que conecta tudo
+├── fatos_credito.pl        # Base de dados ficticia
+├── regras_credito.pl       # Validacoes e regras de negocio
+└── interface_credito.pl    # Saida formatada no terminal
+```
+
+### Exemplo de Uso
+
+Se voce tiver `SWI-Prolog` instalado, pode carregar o arquivo e rodar consultas como estas:
+
+```bash
+swipl -q -s prolog/credito_bancario.pl -g run -t halt
+swipl -q -s prolog/credito_bancario.pl -g "listar_clientes" -t halt
+swipl -q -s prolog/credito_bancario.pl -g "analisar_cliente('ANA001')" -t halt
+swipl -q -s prolog/credito_bancario.pl -g "resultado_cliente('ANA001', R), writeln(R)" -t halt
+```
+
+### Como Ler o Fluxo
+
+- `fatos_credito.pl` guarda os dados ficticios dos clientes.
+- `regras_credito.pl` decide se aprova, reprova, calcula limite e juros.
+- `interface_credito.pl` mostra o resultado de forma legivel no terminal.
+- `credito_bancario.pl` apenas junta os outros arquivos para facilitar a execucao.
+
+### Exemplo de Regra
+
+```prolog
+resultado_cliente(Id, resultado(aprovado, Risco, LimiteMaximo, ValorSolicitado, Juros, Motivos)) :-
+    motivos_reprovacao(Id, []),
+    limite_maximo(Id, LimiteMaximo),
+    cliente(Id, _, _, _, _, _, _, ValorSolicitado, _, _),
+    ValorSolicitado =< LimiteMaximo,
+    taxa_juros(Id, Juros),
+    risco_cliente(Id, aprovado, Risco),
+    motivos_aprovacao(Id, Motivos),
+    !.
+```
+
+Esse predicado resume o fluxo de analise:
+
+- verifica se nao ha motivos automaticos de reprovacao
+- calcula o limite maximo
+- checa se o valor solicitado cabe no limite
+- calcula a taxa de juros
+- determina o risco
+- retorna todos os motivos da decisao
