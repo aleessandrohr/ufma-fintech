@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass(frozen=True)
 class Cliente:
     id: str
@@ -10,7 +11,7 @@ class Cliente:
     dividas_em_aberto: bool
     atrasos_ultimos_12_meses: int
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.id:
             raise ValueError("ID não pode ser vazio")
         if not self.nome:

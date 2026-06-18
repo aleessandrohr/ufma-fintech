@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from .cliente import Cliente
+
+from credit.domain.cliente_domain import Cliente
+
 
 @dataclass(frozen=True)
 class Proposta:
@@ -8,7 +10,7 @@ class Proposta:
     parcelas: int
     finalidade: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.valor_solicitado <= 0:
             raise ValueError("Valor solicitado deve ser maior que zero")
         if self.parcelas <= 0:

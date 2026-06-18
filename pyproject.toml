@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ufma-fintech"
+version = "0.1.0"
+description = "Projeto academico de analise de credito em Python."
+readme = "README.md"
+requires-python = ">=3.12"
+
+[dependency-groups]
+dev = [
+  "pyright>=1.1.410",
+  "pytest>=9.1.0",
+  "ruff>=0.15.18",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.12"
+include = ["src"]
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+addopts = "-v"
+testpaths = ["src/tests"]
+python_files = ["test_*.py"]
+pythonpath = ["src"]

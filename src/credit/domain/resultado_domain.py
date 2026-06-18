@@ -1,4 +1,5 @@
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+
 
 @dataclass(frozen=True)
 class ResultadoAnalise:
@@ -10,5 +11,5 @@ class ResultadoAnalise:
     taxa_juros_mensal: float
     motivos: tuple[str, ...]
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, object]:
         return asdict(self)

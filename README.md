@@ -9,30 +9,33 @@ Projeto desenvolvido com foco em boas práticas de programação em Python, incl
 ## Estrutura de Pastas
 ```
 ufma-fintech/
-├── main.py                     # Ponto de entrada CLI
 ├── README.md                   # Documentação do projeto
-├── requirements.txt            # Dependências (pytest)
-├── pytest.ini                  # Configurações do pytest
+├── pyproject.toml              # Configuração central do projeto
+├── uv.lock                     # Lockfile do uv
 │
-├── data/
-│   └── clientes_teste.json     # Base de dados mockada
-│
-├── credito/
-│   ├── __init__.py
-│   ├── cliente.py              # Dataclass Cliente
-│   ├── proposta.py             # Dataclass Proposta
-│   ├── resultado.py            # Dataclass ResultadoAnalise
-│   ├── regras_credito.py       # Funções puras de validação e cálculo
-│   ├── analise_risco.py        # Orquestração da análise de crédito
-│   ├── repositorio_clientes.py # Acesso a dados (JSON)
-│   └── terminal.py             # Formatação e saída no terminal
-│
-└── tests/                      # Suite de testes
-    ├── test_aprovacao.py
-    ├── test_reprovacao.py
-    ├── test_limite.py
-    ├── test_juros.py
-    └── test_regras_credito.py
+├── src/
+│   ├── main.py                 # Ponto de entrada CLI
+│   ├── data/
+│   │   └── clientes_teste.json # Base de dados mockada
+│   ├── credit/
+│   │   ├── __init__.py
+│   │   ├── domain/
+│   │   │   ├── cliente_domain.py   # Dataclass Cliente
+│   │   │   ├── proposta_domain.py  # Dataclass Proposta
+│   │   │   └── resultado_domain.py # Dataclass ResultadoAnalise
+│   │   ├── services/
+│   │   │   ├── regras_service.py    # Funcoes puras de validacao e calculo
+│   │   │   └── analise_service.py   # Orquestracao da analise de credito
+│   │   ├── repositories/
+│   │   │   └── clientes_repository.py
+│   │   └── presentation/
+│   │       └── terminal_presentation.py # Formatação e saída no terminal
+│   └── tests/
+│       ├── test_aprovacao.py
+│       ├── test_reprovacao.py
+│       ├── test_limite.py
+│       ├── test_juros.py
+│       └── test_regras_credito.py
 ```
 
 ## Regras de Aprovação e Reprovação
@@ -66,41 +69,138 @@ O cliente será reprovado automaticamente se:
 - 3 ou mais atrasos em 12 meses: +0.5%
 - Solicitou > 70% do limite máximo: +0.5%
 
+## Exemplos de Codigo e Fluxo
+O sistema foi separado por responsabilidade para ficar mais facil de entender:
+
+### 1. Ponto de entrada da aplicacao
+Em `src/main.py`, a funcao `main()` recebe os argumentos do terminal e decide qual acao executar.
+
+```python
+if args.all:
+    resultados: list[ResultadoAnalise] = []
+    for p in propostas_todas:
+        resultado = analisador.analisar(p)
+        resultados.append(resultado)
+
+    for p, r in zip(propostas_todas, resultados, strict=True):
+        imprimir_resultado(p, r)
+```
+
+Esse trecho mostra o fluxo principal:
+- carrega todas as propostas
+- analisa cada cliente
+- imprime o resultado final no terminal
+
+### 2. Modelo de dominio
+Em `src/credit/domain/cliente_domain.py`, a classe `Cliente` representa os dados do cliente e valida os campos basicos.
+
+```python
+@dataclass(frozen=True)
+class Cliente:
+    id: str
+    nome: str
+    idade: int
+    renda_mensal: float
+    score: int
+    dividas_em_aberto: bool
+    atrasos_ultimos_12_meses: int
+```
+
+Esse modelo evita dados inconsistentes, como idade negativa ou score fora da faixa esperada.
+
+### 3. Regras de negocio
+Em `src/credit/services/regras_service.py`, ficam os calculos e validacoes principais.
+
+```python
+def calcular_limite_maximo(cliente: Cliente) -> float:
+    limite = calcular_limite_base(cliente)
+
+    if cliente.dividas_em_aberto:
+        limite -= limite * PENALIDADE_DIVIDA
+
+    if cliente.atrasos_ultimos_12_meses >= ATRASOS_MINIMOS_PENALIDADE:
+        limite -= limite * PENALIDADE_ATRASOS
+
+    return round(limite, 2)
+```
+
+Esse exemplo mostra como o sistema ajusta o limite conforme o risco do cliente.
+
+### 4. Caso de uso da analise
+Em `src/credit/services/analise_service.py`, a classe `AnaliseRisco` coordena todo o processo.
+
+```python
+if not validar_score(cliente):
+    motivos.append(
+        f"Cliente reprovado por score abaixo do minimo de {SCORE_MINIMO}."
+    )
+```
+
+Aqui o sistema verifica se o cliente cumpre as regras. Se falhar em alguma delas, a proposta e reprovada.
+
+### 5. Acesso a dados
+Em `src/credit/repositories/clientes_repository.py`, o sistema le o arquivo JSON e transforma os dados em objetos Python.
+
+```python
+with caminho.open("r", encoding="utf-8") as f:
+    dados: list[dict[str, Any]] = json.load(f)
+```
+
+Esse arquivo isola a leitura de dados, deixando a regra de negocio independente da origem da informacao.
+
+### 6. Apresentacao no terminal
+Em `src/credit/presentation/terminal_presentation.py`, o sistema apenas formata e imprime o resultado.
+
+```python
+print(f"Resultado: {resultado.status}")
+print(f"Limite aprovado: {formatar_moeda(resultado.limite_aprovado)}")
+print(f"Taxa de juros mensal: {formatar_percentual(resultado.taxa_juros_mensal)}")
+```
+
+Esse modulo nao decide nada. Ele existe apenas para mostrar o resultado de forma legivel.
+
 ## Como Instalar
 
 ```bash
-# Crie e ative o ambiente virtual
-python -m venv .venv
-
-# Linux/macOS:
+# Se voce tiver uv instalado:
+uv sync --group dev
 source .venv/bin/activate
+```
 
-# Windows:
-.venv\Scripts\activate
+Alternativa sem `uv`:
 
-# Instale as dependências
-pip install -r requirements.txt
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install ruff pyright pytest uv
 ```
 
 ## Como Executar pelo Terminal
 ```bash
-python main.py --help
-python main.py --list
-python main.py --cliente ANA001
-python main.py --all
-python main.py --cliente ANA001 --json
+python src/main.py --help
+python src/main.py --list
+python src/main.py --cliente ANA001
+python src/main.py --all
 ```
 
-## Como Rodar os Testes
+## Como Rodar com uv
 ```bash
-python -m pytest -v
+uv run ruff check .
+uv run ruff format .
+uv run pyright
+uv run pytest
+```
+
+## Como Rodar sem uv
+```bash
+python -m ruff check .
+python -m ruff format .
+python -m pyright
+python -m pytest
 ```
 
 ## Decisões de Projeto e Limitações
 - Foram utilizadas `@dataclass(frozen=True)` em `Cliente` e `Proposta` para evitar mutação indevida de dados.
-- Funções em `regras_credito.py` foram isoladas para facilitar os testes (puras ou semi-puras).
+- Funções em `regras_service.py` foram isoladas para facilitar os testes (puras ou semi-puras).
 - Arquitetura plugável: fácil de trocar o JSON por um banco de dados SQL atualizando o repositório.
 - **Atenção:** Todos os dados aqui presentes são fictícios e usados apenas para fins acadêmicos.
-
-## Uso de IA no desenvolvimento
-Este projeto utilizou ferramentas de Inteligência Artificial como apoio no planejamento, estruturação e revisão de código e boas práticas.

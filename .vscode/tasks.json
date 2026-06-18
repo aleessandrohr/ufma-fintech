@@ -1,0 +1,33 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Ruff: check",
+			"type": "shell",
+			"command": ".venv/bin/uv run ruff check .",
+			"group": "test",
+			"problemMatcher": []
+		},
+		{
+			"label": "Ruff: format",
+			"type": "shell",
+			"command": ".venv/bin/uv run ruff format .",
+			"group": "test",
+			"problemMatcher": []
+		},
+		{
+			"label": "Pyright: check",
+			"type": "shell",
+			"command": ".venv/bin/uv run pyright",
+			"group": "test",
+			"problemMatcher": []
+		},
+		{
+			"label": "Pytest: run",
+			"type": "shell",
+			"command": ".venv/bin/uv run pytest",
+			"group": "test",
+			"problemMatcher": []
+		}
+	]
+}
