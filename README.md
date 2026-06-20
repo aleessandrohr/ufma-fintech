@@ -287,3 +287,45 @@ Esse predicado resume o fluxo de analise:
 - calcula a taxa de juros
 - determina o risco
 - retorna todos os motivos da decisao
+
+## Versao LispWorks
+
+A versao em LispWorks fica na pasta `lispworks/` e replica a mesma regra de negocio usando Common Lisp. A organizacao segue o mesmo desenho da versao Prolog: fatos, regras, interface e um arquivo principal para carregar tudo.
+
+### Mapeamento Conceitual
+
+- `Cliente` vira a estrutura `cliente`.
+- `ResultadoAnalise` vira a estrutura `resultado`.
+- `fatos_credito.pl` vira `fatos_credito.lisp`.
+- `regras_credito.pl` vira funcoes puras de validacao, limite, juros, risco e resultado.
+- `interface_credito.pl` vira funcoes de exibicao no terminal/Listener.
+
+### Estrutura LispWorks
+
+```text
+lispworks/
+|-- credito_bancario.lisp   # Arquivo principal que carrega os demais
+|-- package.lisp            # Definicao do pacote credito-bancario
+|-- fatos_credito.lisp      # Base de dados ficticia
+|-- regras_credito.lisp     # Validacoes e regras de negocio
+`-- interface_credito.lisp  # Saida formatada no terminal/Listener
+```
+
+### Exemplo de Uso
+
+No Listener do LispWorks, carregue o arquivo principal e chame as funcoes exportadas:
+
+```lisp
+(load "lispworks/credito_bancario.lisp")
+(credito-bancario:run)
+(credito-bancario:listar-clientes)
+(credito-bancario:analisar-cliente "ANA001")
+(credito-bancario:resultado-cliente "ANA001")
+```
+
+### Como Ler o Fluxo
+
+- `fatos_credito.lisp` guarda os clientes e propostas em estruturas Common Lisp.
+- `regras_credito.lisp` calcula limite, juros, risco e motivos de aprovacao/reprovacao.
+- `interface_credito.lisp` apenas imprime os dados de forma legivel.
+- `credito_bancario.lisp` centraliza o carregamento para facilitar a execucao no LispWorks.
