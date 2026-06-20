@@ -329,3 +329,29 @@ No Listener do LispWorks, carregue o arquivo principal e chame as funcoes export
 - `regras_credito.lisp` calcula limite, juros, risco e motivos de aprovacao/reprovacao.
 - `interface_credito.lisp` apenas imprime os dados de forma legivel.
 - `credito_bancario.lisp` centraliza o carregamento para facilitar a execucao no LispWorks.
+
+### Exemplo de Regra
+
+```lisp
+(defun limite-maximo (id)
+  (let* ((cliente (exigir-cliente id))
+         (limite-base (limite-base-cliente cliente))
+         (limite-com-divida
+           (if (cliente-dividas-em-aberto cliente)
+               (- limite-base (* limite-base +penalidade-divida+))
+               limite-base))
+         (limite-final
+           (if (>= (cliente-atrasos-ultimos-12-meses cliente)
+                   +atrasos-minimos-penalidade+)
+               (- limite-com-divida
+                  (* limite-com-divida +penalidade-atrasos+))
+               limite-com-divida)))
+    (arredondar-2 limite-final)))
+```
+
+Essa regra faz o mesmo papel da função de cálculo de limite na versão Python e do predicado `limite_maximo/2` na versão Prolog:
+
+- calcula um limite base a partir do score do cliente
+- aplica desconto se houver dívidas em aberto
+- aplica desconto se houver atrasos relevantes
+- retorna o valor final arredondado
